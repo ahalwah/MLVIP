@@ -55,19 +55,6 @@ function modelLoaded() {
   console.log('poseNet ready');
 }
 
-var chart = new CanvasJS.Chart("chartContainer", {
-	animationEnabled: true,
-	theme: "light2",
-	title:{
-		text: "Simple Line Chart"
-	},
-	data: [{        
-		type: "line",
-    indexLabelFontSize: 16,
-    dataPoints: values,
-  }]
-});
-
 function draw() {
   drawTime=millis()
   background('black')
@@ -135,6 +122,18 @@ function draw() {
     }
 
     if(showGraph==true){
+      var chart = new CanvasJS.Chart("chartContainer", {
+        animationEnabled: true,
+        theme: "light2",
+        title:{
+          text: "Simple Line Chart"
+        },
+        data: [{        
+          type: "line",
+          indexLabelFontSize: 16,
+          dataPoints: values,
+        }]
+      });
       chart.render()
       showGraph=false
       values=[]
