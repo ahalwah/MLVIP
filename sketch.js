@@ -5,7 +5,6 @@ let values =[]
 
 let cwidth = 680
 let cheight = 480
-let button
 let startTime = 0
 let currentTime = 0
 let waitTime = 0
@@ -126,7 +125,7 @@ function draw() {
         animationEnabled: true,
         theme: "light2",
         title:{
-          text: "Simple Line Chart"
+          text: "Angle vs. Time"
         },
         data: [{        
           type: "line",
