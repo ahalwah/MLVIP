@@ -30,12 +30,18 @@ let startTime = 0
 let currentTime = 0
 let waitTime = 0
 
-const parts = [];
-let mediaRecorder
+//const parts = [];
+const recordBtn = document.getElementById("btn");
+let recording = false;
+let mediaRecorder;
+let recordedChunks;
+let canvas;
+let started = false;
+let oneRun = false;
 
 async function init() {
   const detectorConfig = {
-    modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER,
+    modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
   };
   detector = await poseDetection.createDetector(
     poseDetection.SupportedModels.PoseNet,
@@ -103,50 +109,57 @@ function draw() {
         line(poses[0].keypoints[p1].x,poses[0].keypoints[p1].y,poses[0].keypoints[p2].x,poses[0].keypoints[p2].y)
     }
   }
-  document.getElementById("btn").onclick = function() {
-    waitTime=millis()
-    console.log('Get in position to collect data')
-    state='pause'
-    showGraph=false
-  }
-  if(drawTime-waitTime<5000 && state=='pause'){
-    fill('yellow')
-    circle(660, 20, 30) 
-  }
-  if(state=='collecting'){
-    fill('red')
-    circle(660, 20, 30)
-  }
-  navigator.mediaDevices.getUserMedia({audio: false, video: true}).then(stream => {
-    document.getElementById("defaultCanvas0").srcObject = stream;
+
+  if(started){
+    if(drawTime-waitTime<5000 && state=='pause'){
+      fill('yellow')
+      circle(660, 20, 30) 
+    }
+    if(state=='collecting'){
+      fill('red')
+      circle(660, 20, 30)
+    }
+  
     if(drawTime-waitTime>5000 && state=='pause'){
       console.log('collecting');
       state = 'collecting';
-      mediaRecorder = new MediaRecorder(stream);
-      mediaRecorder.start(1000);
-      mediaRecorder.ondataavailable = function (e) {
-        parts.push(e.data);
-      }
       startTime=millis()
+      if(oneRun){
+        const stream = document.getElementById("defaultCanvas0").captureStream(25);
+        mediaRecorder = new MediaRecorder(stream, {
+            mimeType: 'video/webm;codecs=vp9'
+        });
+        recordedChunks = [];
+        mediaRecorder.ondataavailable = e => {
+            if(e.data.size > 0){
+                recordedChunks.push(e.data);
+                console.log('appending')
+            }
+        };
+        mediaRecorder.start();
+        console.log('recording')
+        oneRun=!oneRun
+      }
     }
-  });
-
-  if(state=='collecting' && currentTime-startTime>6000){
-    state='waiting'
-    showGraph=true
-    mediaRecorder.stop();
-    const blob = new Blob(parts, {
-        type: "video/webm"
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    document.body.appendChild(a);
-    a.style = "display: none";
-    a.href = url;
-    a.download = "video.webm"
-    a.click();
+  
+    if(state=='collecting' && currentTime-startTime>6000){
+      state='waiting'
+      showGraph=true
+      started=false
+      mediaRecorder.stop();
+      setTimeout(() => {
+          const blob = new Blob(recordedChunks, {
+              type: "video/webm"
+          });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "recording.webm";
+          a.click();
+          URL.revokeObjectURL(url);
+      },0);
     }
-
+    }
     if(showGraph==true){
       var chart = new CanvasJS.Chart("chartContainer", {
         animationEnabled: true,
@@ -164,5 +177,16 @@ function draw() {
       showGraph=false
       values=[]
     }
-
-}
+      
+  }
+  
+  recordBtn.addEventListener("click", () => {
+    //once the button is pressed
+    waitTime=millis()
+    console.log('Get in position to collect data')
+    state='pause'
+    showGraph=false
+    started = true
+    oneRun = true
+  
+  });
