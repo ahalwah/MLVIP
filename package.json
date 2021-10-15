@@ -1,0 +1,7 @@
+{
+  "type": "module",
+  "dependencies": {
+    "b-spline": "^2.0.2",
+    "esm": "^3.2.25"
+  }
+}
