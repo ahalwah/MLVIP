@@ -41,7 +41,7 @@ let oneRun = false;
 
 async function init() {
   const detectorConfig = {
-    modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
+    modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER,
   };
   detector = await poseDetection.createDetector(
     poseDetection.SupportedModels.PoseNet,
