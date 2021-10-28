@@ -20,14 +20,17 @@ let poseNet;
 let pose;
 let skeleton;
 
-let counter = 0;
 let ydown = 100; //positive because downward is +y
 let xright = 650 / 2; //positive because right is +x
 let p1;
 
+let pposition = { x: 0, y: 0 }; //previous position
+
 function setup() {
-  createCanvas(1300, 650);
+  createCanvas(1290, 650);
+  background("white");
   p1 = createGraphics(650, 650, WEBGL);
+
   video = createCapture(VIDEO);
   video.hide();
   poseNet = ml5.poseNet(video, modelLoaded);
@@ -46,11 +49,11 @@ function modelLoaded() {
 }
 
 function draw() {
-  background("grey");
-  //p1.background(220);
+  p1.clear();
+  p1.background("grey");
   image(video, 0, 0); //-650 -240
-  if (true) {
-    //pose
+  line(0, 240, 640, 240);
+  if (pose) {
     //left hip =12, right hip = 11, right wrist = 10, left wrist= 9
     /*
     let pos = centerCoordinates(pose.rightWrist.x,pose.rightWrist.y,
@@ -62,7 +65,7 @@ function draw() {
       let x = pose.keypoints[i].position.x;
       let y = pose.keypoints[i].position.y;
       fill(0,255,0);
-      ellipse(x+650,y,16,16);
+      ellipse(x,y,16,16);
     }
     
     for (let i = 0; i < skeleton.length; i++) {
@@ -70,24 +73,57 @@ function draw() {
       let b = skeleton[i][1];
       strokeWeight(2);
       stroke(220);
-      line(a.position.x+650, a.position.y,b.position.x+650,b.position.y);      
+      line(a.position.x, a.position.y,b.position.x,b.position.y);      
     }
     */
-    if (true) {
+    //console.log("score: " + pose.rightWrist.confidence * 100 + "%");
+    if (pose.rightWrist.confidence > 0.3) {
       //pose.rightWrist.confidence>0.5 && pose.rightHip.confidence>0.5 && pose.leftHip.confidence>0.5
       //console.log(pose.rightWrist.x+' '+pose.rightWrist.y)
+      let position = centerAboutOrigin(
+        pose.rightWrist.x,
+        pose.rightWrist.y,
+        320,
+        240
+      );
       if (true) {
-        //pose.rightWrist.x**2+pose.rightWrist.y**2<=90000
-
-        //fill('red');
-        //ellipse(pose.rightWrist.x+650,pose.rightWrist.y,25,25);
+        console.log(position.x, " " + position.y);
+        //y >= -10 && dist(0, 0, position.x, position.y) <= 300
+        //constraint for points above the table reachable by robot arm
+        //if wrist is outside of -300<=x<=300 and -10<=y<=300 then use previous configuration
+        //y>=-10 because the robot's base is 10 px below origin
+        //dist(0,0,position.x,position.y)<=300
+        fill("red");
+        if (pose.rightWrist.y <= 480)
+          ellipse(
+            pose.rightWrist.x,
+            pose.rightWrist.y,
+            dist(
+              pose.rightEye.x,
+              pose.rightEye.y,
+              pose.leftEye.x,
+              pose.leftEye.y
+            ),
+            dist(
+              pose.rightEye.x,
+              pose.rightEye.y,
+              pose.leftEye.x,
+              pose.leftEye.y
+            )
+          );
 
         let angles = "unreachable";
-        if (counter % 5 == 0) {
+        if (dist(position.x, position.y, pposition.x, pposition.y) >= 10) {
           while (angles == "unreachable") {
             phi = random(-60, 241);
-            angles = inverse(a1, a2, a3, 200, 150, (PI / 180) * phi);
-            //console.log(phi+' '+angles)
+            angles = inverse(
+              a1,
+              a2,
+              a3,
+              position.x,
+              position.y,
+              (PI / 180) * phi
+            );
           }
           angle1 = (180 / PI) * angles.sol1.theta1;
           angle2 = (180 / PI) * angles.sol1.theta2;
@@ -95,15 +131,7 @@ function draw() {
           pangle1 = angle1;
           pangle2 = angle2;
           pangle3 = angle3;
-          console.log(
-            counter +
-              ": " +
-              parseInt(angle1) +
-              " " +
-              parseInt(angle2) +
-              " " +
-              parseInt(angle3)
-          );
+
           drawBase();
           drawLink1(
             (PI / 180) * alpha,
@@ -124,15 +152,6 @@ function draw() {
             (PI / 180) * angle3
           );
         } else {
-          console.log(
-            counter +
-              ": " +
-              parseInt(pangle1) +
-              " " +
-              parseInt(pangle2) +
-              " " +
-              parseInt(pangle3)
-          );
           drawBase();
           drawLink1(
             (PI / 180) * palpha,
@@ -153,23 +172,42 @@ function draw() {
             (PI / 180) * pangle3
           );
         }
-
-        /*
-        if(mouseIsPressed)
-          console.log('('+abs(325-mouseX)+','+abs(325-mouseY)+')')
-        */
+        pposition.x = position.x;
+        pposition.y = position.y;
+      } else {
+        drawBase();
+        drawLink1(
+          (PI / 180) * palpha,
+          (PI / 180) * (90 - pangle1),
+          (PI / 180) * pangle1
+        );
+        drawLink2(
+          (PI / 180) * palpha,
+          (PI / 180) * (90 - pangle1 - pangle2),
+          (PI / 180) * pangle1,
+          (PI / 180) * pangle2
+        );
+        drawLink3(
+          (PI / 180) * palpha,
+          (PI / 180) * (90 - pangle1 - pangle2 - pangle3),
+          (PI / 180) * pangle1,
+          (PI / 180) * pangle2,
+          (PI / 180) * pangle3
+        );
       }
     }
   }
-  image(p1, 650, 0);
-  //image(video, 650, 0);
-  counter += 1;
+  image(p1, 640, 0);
 }
 
 //wrist x, wrist y, left hip x, left hip y, right hip x, right hip y
 function centerCoordinates(x, y, x1, y1, x2, y2) {
   let center = { x: (x1 + x2) / 2, y: (y1 + y2) / 2 };
   return { x: abs(x - center.x), y: abs(y - center.y) };
+}
+
+function centerAboutOrigin(x, y, xorigin, yorigin) {
+  return { x: x - xorigin, y: yorigin - y };
 }
 
 function drawBase() {
