@@ -5,8 +5,9 @@ let skeleton;
 
 let brain;
 let poseLabel = "";
+let prevLabel = "";
 
-const serviceUuid = "0000ffe0-0000-1000-8000-00805f9b34fb"
+const serviceUuid = "0000ffe0-0000-1000-8000-00805f9b34fb";
 let blueToothCharacteristic;
 let receivedValue = "";
 
@@ -21,34 +22,34 @@ function setup() {
   // Create a p5ble class
   console.log("setting up");
   blueTooth = new p5ble();
-  
-  const connectButton = createButton('Connect');
+
+  const connectButton = createButton("Connect");
   connectButton.mousePressed(connectToBle);
   connectButton.position(15, 15);
   millisecondTimerStart = millis();
-  
+
   video = createCapture(VIDEO);
   video.hide();
   poseNet = ml5.poseNet(video, modelLoaded);
-  poseNet.on('pose', gotPoses);
+  poseNet.on("pose", gotPoses);
 
   let opt = {
     inputs: 34,
     outputs: 5,
-    task: 'classification',
-    debug: true
-  }
+    task: "classification",
+    debug: true,
+  };
   brain = ml5.neuralNetwork(opt);
   const modelInfo = {
-    model: 'model/model.json',
-    metadata: 'model/model_meta.json',
-    weights: 'model/model.weights.bin',
+    model: "model/model.json",
+    metadata: "model/model_meta.json",
+    weights: "model/model.weights.bin",
   };
   brain.load(modelInfo, brainLoaded);
 }
 
 function brainLoaded() {
-  console.log('pose classification ready!');
+  console.log("pose classification ready!");
   classifyPose();
 }
 
@@ -68,14 +69,12 @@ function classifyPose() {
 }
 
 function gotResult(error, results) {
-  
   if (results[0].confidence > 0.75) {
     poseLabel = results[0].label.toUpperCase();
   }
   //console.log(results[0].confidence);
   classifyPose();
 }
-
 
 function gotPoses(poses) {
   if (poses.length > 0) {
@@ -84,9 +83,8 @@ function gotPoses(poses) {
   }
 }
 
-
 function modelLoaded() {
-  console.log('poseNet ready');
+  console.log("poseNet ready");
 }
 
 function draw() {
@@ -96,7 +94,7 @@ function draw() {
   image(video, 0, 0, video.width, video.height);
 
   drawScreen();
-  
+
   if (pose) {
     for (let i = 0; i < skeleton.length; i++) {
       let a = skeleton[i][0];
@@ -118,12 +116,12 @@ function draw() {
   pop();
   fill(255, 0, 255);
   noStroke();
-  textSize(512);
-  textAlign(CENTER, CENTER);
-  text(poseLabel, width / 2, height / 2);
-  if(poseLabel!="" && isConnected){
+  textSize(100);
+  text(poseLabel, 560, 80);
+  if (poseLabel != "" && isConnected && poseLabel!=prevLabel) {
     sendData(poseLabel);
   }
+  prevLabel = poseLabel;
 }
 
 function connectToBle() {
@@ -133,13 +131,13 @@ function connectToBle() {
 
 // A function that will be called once got characteristics
 function gotCharacteristics(error, characteristics) {
-  if (error) { 
-    console.log('error: ', error);
+  if (error) {
+    console.log("error: ", error);
   }
   blueToothCharacteristic = characteristics[0];
-  
-  blueTooth.startNotifications(blueToothCharacteristic, gotValue, 'string');
-  
+
+  blueTooth.startNotifications(blueToothCharacteristic, gotValue, "string");
+
   isConnected = blueTooth.isConnected();
   // Add a event handler when the device is disconnected
   blueTooth.onDisconnected(onDisconnected);
@@ -147,11 +145,11 @@ function gotCharacteristics(error, characteristics) {
 
 // A function that will be called once got values
 function gotValue(value) {
-  console.log('value: ', value);
+  console.log("value: ", value);
 }
 
 function onDisconnected() {
-  console.log('Device got disconnected.');
+  console.log("Device got disconnected.");
   isConnected = false;
 }
 
@@ -161,15 +159,15 @@ function sendData(command) {
     console.log("Sorry, this browser does not support TextEncoder...");
   }
   var enc = new TextEncoder(); // always utf-8
-blueToothCharacteristic.writeValue(enc.encode(inputValue));
+  blueToothCharacteristic.writeValue(enc.encode(inputValue));
 }
 
 function drawScreen() {
   if (isConnected) {
     fill(0, 255, 0);
-    ellipse(120,25,30,30);
+    ellipse(120, 25, 30, 30);
   } else {
     fill(255, 0, 0);
-    ellipse(120,25,30,30);
+    ellipse(120, 25, 30, 30);
   }
 }

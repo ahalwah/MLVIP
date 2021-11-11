@@ -27,47 +27,41 @@ void setup() {
 }
 
 void loop() {
-  char charBuffer[20];//most we would ever see
   if(bluetooth.available()>0){
     //led indicator for bluetooth connected
     digitalWrite(led,HIGH);
-    //indexing starts at 0 so if we read in 'cool' we have 4 bytes 
-    //but we are going from 0 to 3 therefore at index 4 we set to null
-    //then read only from 0 to 3 to retriever our input of 'cool'
-    int numberOfBytesReceived = bluetooth.readBytesUntil('\n', charBuffer, 19);
-    charBuffer[numberOfBytesReceived] = NULL;
-    int index = numberOfBytesReceived-1;
-    Serial.println(charBuffer[index]);
+    char c = bluetooth.read();
+    Serial.println(sizeof(c));
     //Conditionals for different letter inputs
-    if(charBuffer[index]=='S'){
+    if(c=='S'){
       Serial.println("Stop");
       digitalWrite(motorTwo_InputOne,LOW);
       digitalWrite(motorTwo_InputTwo,LOW);
       digitalWrite(motorOne_InputOne,LOW);
       digitalWrite(motorOne_InputTwo,LOW);
     }
-    if(charBuffer[index]=='R'){
+    if(c=='R'){
       Serial.println("Turning Right");
-      digitalWrite(motorTwo_InputOne,HIGH);
-      digitalWrite(motorTwo_InputTwo,LOW);
-      digitalWrite(motorOne_InputOne,LOW);
-      digitalWrite(motorOne_InputTwo,HIGH);
+      digitalWrite(motorTwo_InputOne,LOW);
+      digitalWrite(motorTwo_InputTwo,HIGH);
+      digitalWrite(motorOne_InputOne,HIGH);
+      digitalWrite(motorOne_InputTwo,LOW);
     }
-    if(charBuffer[index]=='L'){
+    if(c=='L'){
       Serial.println("Turning Left");
       digitalWrite(motorTwo_InputOne,HIGH);
       digitalWrite(motorTwo_InputTwo,LOW);
       digitalWrite(motorOne_InputOne,LOW);
       digitalWrite(motorOne_InputTwo,HIGH);
     }
-    if(charBuffer[index]=='F'){
+    if(c=='F'){
       Serial.println("Forward");
       digitalWrite(motorTwo_InputOne,HIGH);
       digitalWrite(motorTwo_InputTwo,LOW);
       digitalWrite(motorOne_InputOne,HIGH);
       digitalWrite(motorOne_InputTwo,LOW);
     }
-    if(charBuffer[index]=='B'){
+    if(c=='B'){
       Serial.println("Backward");
       digitalWrite(motorTwo_InputOne,LOW);
       digitalWrite(motorTwo_InputTwo,HIGH);
