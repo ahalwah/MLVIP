@@ -32,7 +32,7 @@ async function videoReady() {
 }
 
 async function setup() {
-  createCanvas(width * 2, height * 2);
+  createCanvas(width * 2, height);
 
   // Create a p5ble class
   console.log("setting up");
@@ -53,7 +53,7 @@ async function getPoses() {
   setTimeout(getPoses, 0);
 }
 
-async function draw() {
+function draw() {
   p1.clear();
   p1.background("grey");
   p1.line(-width / 2, 0, 0, width / 2, 0, 0);
@@ -78,11 +78,13 @@ async function draw() {
       // send angles over bluetooth
 
       if (isConnected && counter % 10 == 0 && ypos < 0) {
+        if (counter == 100) counter = 0;
         let ang1 = parseInt(a1).toString();
         let ang2 = parseInt(a2).toString();
         //don't send if a1 is below horizontal
         if (ang1 < 0) writeToBle("@" + abs(ang1) + "#" + abs(ang2) + "!");
       } else if (counter % 10 == 0 && ypos < 0) {
+        if (counter == 100) counter = 0;
         console.log(parseInt(a1) + " " + parseInt(a2));
       }
 
@@ -103,9 +105,7 @@ async function draw() {
 Number.prototype.map = function (in_min, in_max, out_min, out_max) {
   return ((this - in_min) * (out_max - out_min)) / (in_max - in_min) + out_min;
 };
-function centerAboutOrigin(x, y, xorigin, yorigin) {
-  return [x - xorigin, yorigin - y];
-}
+
 function inverse2R(l1, l2, x, y) {
   angleMode(DEGREES);
   if (abs(x ** 2 + y ** 2 - l1 ** 2 - l2 ** 2) / (2 * l1 * l2) > 1) {
@@ -152,22 +152,4 @@ function writeToBle(command) {
   const inputValue = command.toString();
   // Write the value of the input to the myCharacteristic
   myBLE.write(myCharacteristic, inputValue);
-}
-
-function drawScreen() {
-  if (isConnected) {
-    fill(0, 255, 0);
-    ellipse(120, 25, 30, 30);
-  } else {
-    fill(255, 0, 0);
-    ellipse(120, 25, 30, 30);
-  }
-}
-
-function delay(delayInms) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(2);
-    }, delayInms);
-  });
 }
