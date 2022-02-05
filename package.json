@@ -1,6 +1,7 @@
 {
   "type": "module",
   "dependencies": {
+    "@mediapipe/control_utils_3d": "^0.3.1635987963",
     "@mediapipe/pose": "^0.4.1633558788",
     "@tensorflow-models/pose-detection": "^0.0.6",
     "b-spline": "^2.0.2",

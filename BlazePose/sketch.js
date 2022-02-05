@@ -9,8 +9,9 @@ let hw = width / 2,
 async function init() {
   const model = poseDetection.SupportedModels.BlazePose;
   const detectorConfig = {
-    runtime: "tfjs", // 'tfjs' or "mediapipe"
-    modelType: "heavy", // lite -> full -> heavy
+    runtime: "mediapipe", // 'tfjs' or "mediapipe"
+    modelType: "full", // lite -> full -> heavy
+    solutionPath: "https://cdn.jsdelivr.net/npm/@mediapipe/pose",
   };
   detector = await poseDetection.createDetector(model, detectorConfig);
 }
